@@ -22,9 +22,28 @@ app.use(cors());
 waxOn.on(hbs.handlebars)
 waxOn.setLayoutPath("./views/layouts")
 
-function main(){
+async function main(){
+
+    const db = await MongoUtil.connect(MONGO_URI , "wanderlust")
+    console.log("Connected to database")
     app.get("/" , (req , res) => {
         res.send("Hello World")
+    })
+
+    app.post("/contribute" , (req , res) => {
+        let type = req.body.type
+        let name = req.body.name
+        let description = req.body.description
+        // let location = 
+        let ratings = req.body.ratings
+        let price = req.body.price
+        let stars = req.body.stars
+        // let tags_id =
+        let image_url = req.body.image_url
+        
+        // In one /contribute route, I do 3 updateOne, one for tags one for location and one for the main collection?
+        // How do I do referencing when i do Create?
+        // For reviews which is an embedded object, how do I do the create with it?
     })
 }
 
