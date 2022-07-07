@@ -101,19 +101,25 @@ async function main(){
         }
         haveCity = await db.collection("cities").find(cityCheck).toArray()
 
-        console.log(haveCity)
+        let tagsCopy = []
+        for(id of req.body.tags_id){
+            tagsCopy.push(ObjectId(id))
+        }
+
+        // console.log(haveCity)
+        // console.log(req.body)
         let type = req.body.type
         let name = req.body.name
-        let description = [req.body.description_1 , req.body.description_2 , req.body.description_3]
+        let description = req.body.description
         let country = ObjectId(req.body.country) 
-        let city = haveCity.length == 0 ? req.query.city : ObjectId(haveCity[0]._id)
+        let city = haveCity.length == 0 ? req.query.city : haveCity[0]._id
         let ratings = req.body.ratings
         let price = req.body.price
         let stars = req.body.stars
-        let tags = req.body.tags
+        let tags = tagsCopy
         let image_url = req.body.image_url
-        
-        let result = await db.collection("sightings").insertOne({
+
+        let newListing = {
             'type': type,
             'name': name,
             'description': description,
@@ -124,7 +130,9 @@ async function main(){
             'stars': stars,
             'tags_id': tags,
             'images': image_url
-        })
+        }
+        console.log(newListing)
+        let result = await db.collection("listings").insertOne(newListing)
         res.status(201)
         res.send(result)
 
