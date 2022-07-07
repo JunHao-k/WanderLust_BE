@@ -101,18 +101,32 @@ async function main(){
         }
         haveCity = await db.collection("cities").find(cityCheck).toArray()
 
-        // console.log(haveCity)
+        console.log(haveCity)
         let type = req.body.type
         let name = req.body.name
         let description = [req.body.description_1 , req.body.description_2 , req.body.description_3]
         let country = ObjectId(req.body.country) 
-        let city = haveCity.length == 0 ? req.query.city : haveCity[0]._id
+        let city = haveCity.length == 0 ? req.query.city : ObjectId(haveCity[0]._id)
         let ratings = req.body.ratings
         let price = req.body.price
         let stars = req.body.stars
         let tags = req.body.tags
         let image_url = req.body.image_url
         
+        let result = await db.collection("sightings").insertOne({
+            'type': type,
+            'name': name,
+            'description': description,
+            'country': country,
+            'city': city,
+            'ratings': ratings,
+            'price': price,
+            'stars': stars,
+            'tags_id': tags,
+            'images': image_url
+        })
+        res.status(201)
+        res.send(result)
 
         /*
             For countries and tags in the frontend part, for each input checkbox or multi-select:
@@ -134,7 +148,7 @@ async function main(){
                     </div>
         
         */
-       res.redirect("/")
+    //    res.redirect("/")
     })
 }
 
