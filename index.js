@@ -76,9 +76,8 @@ async function main(){
                 '$regex': req.query.country , '$options': 'i'
             }
             location = await db.collection("countries").find(criteria).toArray()
-            result = await db.collection("listings").findOne({
-                "country": location[0]._id
-            })
+            
+            result = await db.collection("listings").find({}).toArray()
             
         }
         else if(citySearch || bothSearch){
@@ -86,9 +85,7 @@ async function main(){
                 '$regex': req.query.city , '$options': 'i'
             }
             location = await db.collection("cities").find(criteria).toArray()
-            result = await db.collection("listings").findOne({
-                "city": location[0]._id
-            })
+            result = await db.collection("listings").find({}).toArray()
         }
         // console.log(location.length)
         console.log(result)
@@ -116,23 +113,24 @@ async function main(){
             tagsCopy.push(ObjectId(id))
         }
 
-        // console.log(haveCity)
-        // console.log(req.body)
         let type = req.body.type
         let name = req.body.name
         let description = req.body.description
         let country = ObjectId(req.body.country) 
         let city = haveCity.length == 0 ? req.body.city : haveCity[0]._id
+        let email = req.body.email
+        let article = req.body.article
         let ratings = req.body.ratings
         let price = req.body.price
         let stars = req.body.stars
         let tags = tagsCopy
         let image_url = req.body.image_url
+        let reviews = [{}]
 
-        if (!name) {
-            res.status(406)
-            res.send()
-        }
+        // if (!name) {
+        //     res.status(406)
+        //     res.send()
+        // }
 
         let newListing = {
             'type': type,
@@ -140,11 +138,14 @@ async function main(){
             'description': description,
             'country': country,
             'city': city,
+            'email': email,
+            'article': article,
             'ratings': ratings,
             'price': price,
             'stars': stars,
             'tags_id': tags,
-            'images': image_url
+            'images': image_url,
+            'reviews': reviews
         }
         // console.log(newListing)
         let result = await db.collection("listings").insertOne(newListing)
@@ -203,6 +204,8 @@ async function main(){
         let description = req.body.description
         let country = ObjectId(req.body.country) 
         let city = haveCity.length == 0 ? req.body.city : haveCity[0]._id  
+        let email = req.body.email
+        let article = req.body.article
         let ratings = req.body.ratings
         let price = req.body.price
         let stars = req.body.stars
@@ -218,6 +221,8 @@ async function main(){
                 "description": description,
                 "country": country,
                 "city": city,
+                'email': email,
+                'article': article,
                 "ratings": ratings,
                 "price": price,
                 "stars": stars,
@@ -241,11 +246,13 @@ async function main(){
         })
         res.status(200)
         res.json({
-            'status': 'Ok'
+            'status': 'Deleted'
         })
     })
 
     /* ------------------------------------------------------------- END OF DELETE(DELETE) FOR MY LISTINGS -----------------------------------------------------------------------------*/
+
+
 
 }
 
