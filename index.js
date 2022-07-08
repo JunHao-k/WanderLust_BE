@@ -46,6 +46,9 @@ async function main(){
         res.send("Hello World")
     })
 
+    /* ------------------------------------------------------------- START OF READ(GET) FOR MY LISTINGS -----------------------------------------------------------------------------*/
+
+
     // This get request will be send when user types in a country/city in the search bar
     app.get("/search" , async (req , res) => {
         let citySearch = false , countrySearch = false , bothSearch = false , bothNoSearch = false
@@ -93,11 +96,18 @@ async function main(){
         res.status(200)
     })
 
+
+    /* ------------------------------------------------------------- END OF READ(GET) FOR MY LISTINGS -----------------------------------------------------------------------------*/
+
+
+    /* ------------------------------------------------------------- START OF CREATE(POST) FOR MY LISTINGS -----------------------------------------------------------------------------*/
+
+
     app.post("/contribute" , async (req , res) => {
         let haveCity = null;
         let cityCheck = {}
         cityCheck['city'] = {
-            '$regex': req.query.city , '$options': 'i'
+            '$regex': req.body.city , '$options': 'i'
         }
         haveCity = await db.collection("cities").find(cityCheck).toArray()
 
@@ -112,12 +122,17 @@ async function main(){
         let name = req.body.name
         let description = req.body.description
         let country = ObjectId(req.body.country) 
-        let city = haveCity.length == 0 ? req.query.city : haveCity[0]._id
+        let city = haveCity.length == 0 ? req.body.city : haveCity[0]._id
         let ratings = req.body.ratings
         let price = req.body.price
         let stars = req.body.stars
         let tags = tagsCopy
         let image_url = req.body.image_url
+
+        if (!name) {
+            res.status(406)
+            res.send()
+        }
 
         let newListing = {
             'type': type,
@@ -131,7 +146,7 @@ async function main(){
             'tags_id': tags,
             'images': image_url
         }
-        console.log(newListing)
+        // console.log(newListing)
         let result = await db.collection("listings").insertOne(newListing)
         res.status(201)
         res.send(result)
@@ -158,6 +173,80 @@ async function main(){
         */
     //    res.redirect("/")
     })
+
+
+
+    /* ------------------------------------------------------------- END OF CREATE(POST) FOR MY LISTINGS -----------------------------------------------------------------------------*/
+
+
+
+
+    /* ------------------------------------------------------------- START OF UPDATE(PUT) FOR MY LISTINGS -----------------------------------------------------------------------------*/
+
+
+
+    app.put("/listings/:id" , async (req , res) => {
+        let haveCity = null;
+        let cityCheck = {}
+        cityCheck['city'] = {
+            '$regex': req.body.city , '$options': 'i'
+        }
+        haveCity = await db.collection("cities").find(cityCheck).toArray()
+
+        let tagsCopy = []
+        for(id of req.body.tags_id){
+            tagsCopy.push(ObjectId(id))
+        }
+
+        let type = req.body.type
+        let name = req.body.name
+        let description = req.body.description
+        let country = ObjectId(req.body.country) 
+        let city = haveCity.length == 0 ? req.body.city : haveCity[0]._id  
+        let ratings = req.body.ratings
+        let price = req.body.price
+        let stars = req.body.stars
+        let tags = tagsCopy
+        let image_url = req.body.image_url
+
+        let results = await db.collection('listings').updateOne({
+            '_id': ObjectId(req.params.id)
+        } , {
+            '$set': {
+                "type": type,
+                "name": name,
+                "description": description,
+                "country": country,
+                "city": city,
+                "ratings": ratings,
+                "price": price,
+                "stars": stars,
+                'tags_id': tags,
+                'images': image_url
+            }
+        })
+        res.status(200)
+        res.json(results)
+    })
+
+    /* ------------------------------------------------------------- END OF UPDATE(PUT) FOR MY LISTINGS ----------------------------------------------------------------------------- */
+
+
+    /* ------------------------------------------------------------- START OF DELETE(DELETE) FOR MY LISTINGS -----------------------------------------------------------------------------*/
+
+    app.delete("/listings/:id" , async (req , res) => {
+        console.log(req.params.id)
+        let results = await db.collection("listings").deleteOne({
+            "_id": ObjectId(req.params.id)
+        })
+        res.status(200)
+        res.json({
+            'status': 'Ok'
+        })
+    })
+
+    /* ------------------------------------------------------------- END OF DELETE(DELETE) FOR MY LISTINGS -----------------------------------------------------------------------------*/
+
 }
 
 main()
@@ -165,3 +254,15 @@ main()
 app.listen(3000 , () => {
     console.log("Server has Started")
 })
+
+/*
+    Questions for the day:
+
+    1) What can I validate for update and create?
+
+    2) What can I validate for reviews(Embedded documents)
+
+    3) Do you change BE later on when doing frontend to incorporate stuff like $and , $or , $all , $nin , $gt / $gte , $lt / $lte
+
+
+*/
