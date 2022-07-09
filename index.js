@@ -257,12 +257,14 @@ async function main(){
     /* ------------------------------------------------------------- END OF DELETE(DELETE) FOR MY LISTINGS -----------------------------------------------------------------------------*/
 
 
-    /* ------------------------------------------------------------- START OF READ(GET) FOR MY EMBEDDED DOCUMENT (REVIEWS) -----------------------------------------------------------------------------*/
+
+    /* ------------------------------------------------------------- START OF CREATE(POST) FOR MY EMBEDDED DOCUMENT (REVIEWS) -----------------------------------------------------------------------------*/
+
 
 
     // After getting to the main page listing clicking on any listing will lead you to another page with the reviews shown below
     // Click on add review to go to a new page through /:listingid/add
-    app.get("/listings/:listingid/add" , async (req , res) => {
+    app.get("/listings/:listingid/add-review" , async (req , res) => {
         let listingRecord = await db.collection("listings").findOne({
             "_id": ObjectId(req.params.listingid)
         } , {
@@ -275,12 +277,7 @@ async function main(){
         res.send(listingRecord)
     })
 
-    /* ------------------------------------------------------------- END OF READ(GET) FOR MY EMBEDDED DOCUMENT (REVIEWS) -----------------------------------------------------------------------------*/
-
-
-    /* ------------------------------------------------------------- START OF CREATE(POST) FOR MY EMBEDDED DOCUMENT (REVIEWS) -----------------------------------------------------------------------------*/
-
-    app.post("/listings/:listingid/add" , async (req , res) => {
+    app.post("/listings/:listingid/add-review" , async (req , res) => {
         let results = await db.collection("listings").updateOne({
             "_id": ObjectId(req.params.listingid)
         } , {
@@ -300,6 +297,34 @@ async function main(){
 
     /* ------------------------------------------------------------- END OF CREATE(POST) FOR MY EMBEDDED DOCUMENT (REVIEWS) -----------------------------------------------------------------------------*/
 
+
+    // READ MAY NOT BE NEEDED FOR MY PROJECT BECAUSE I AM LISTING THE REVIEWS OUT ALONG WITH THE MAIN DOCUMENT
+    // READ MAY NOT BE NEEDED FOR MY PROJECT BECAUSE I AM LISTING THE REVIEWS OUT ALONG WITH THE MAIN DOCUMENT
+    // READ MAY NOT BE NEEDED FOR MY PROJECT BECAUSE I AM LISTING THE REVIEWS OUT ALONG WITH THE MAIN DOCUMENT
+
+    app.get("/listings/:listingid/your-reviews" , async (req , res) => {
+        let reviewerEmail = req.query.email
+        let reviewRecords = await db.collection("listings").find({
+            "_id": ObjectId(req.params.listingid)
+        } , {
+            'projection': {
+                'reviews': {
+                    '$elemMatch': {
+                        'reviewer_email': reviewerEmail
+                    }
+                }
+            }
+        }).toArray();
+        res.send(reviewRecords)
+    })
+
+
+    /* ------------------------------------------------------------- START OF UPDATE(POST) FOR MY EMBEDDED DOCUMENT (REVIEWS) -----------------------------------------------------------------------------*/
+
+   app.get("/listings/:listingid/your-reviews/:reviewid/edit" , async (req , res) => {
+        let reviewRecord = await db.collection()
+
+   })
 
 }
 
