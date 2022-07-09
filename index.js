@@ -305,7 +305,8 @@ async function main(){
     app.get("/listings/:listingid/your-reviews" , async (req , res) => {
         let reviewerEmail = req.query.email
         let reviewRecords = await db.collection("listings").find({
-            "_id": ObjectId(req.params.listingid)
+            "_id": ObjectId(req.params.listingid),
+            // 'reviewer_email': reviewerEmail
         } , {
             'projection': {
                 'reviews': {
@@ -314,17 +315,83 @@ async function main(){
                     }
                 }
             }
-        }).toArray();
+        }).toArray()
         res.send(reviewRecords)
     })
 
 
     /* ------------------------------------------------------------- START OF UPDATE(POST) FOR MY EMBEDDED DOCUMENT (REVIEWS) -----------------------------------------------------------------------------*/
 
-   app.get("/listings/:listingid/your-reviews/:reviewid/edit" , async (req , res) => {
-        let reviewRecord = await db.collection()
-
+   app.get("/listings/:listingid/your-reviews/:reviewid/update" , async (req , res) => {
+        let reviewRecord = await db.collection("listings").findOne({
+            "_id": ObjectId(req.params.listingid)
+        } , {
+            'projection': {
+                'reviews': {
+                    '$elemMatch': {
+                        '_id': ObjectId(req.params.reviewid)
+                    }
+                }
+            }
+        })
+        res.send(reviewRecord.reviews[0].reviewer + " " + reviewRecord.reviews[0].text)
    })
+
+   app.post("/listings/:listingid/your-reviews/:reviewid/update" , async (req , res) => {
+        let newReviewer = req.body.reviewer
+        let newText = req.body.text
+        await db.collection("listings").updateOne({
+            '_id': ObjectId(req.params.listingid),
+            'reviews._id': ObjectId(req.params.reviewid)
+        } , {
+            '$set':{
+                // $ refers to position(index) of the embedded document that we want to edit whose id matches <<'notes._id': ObjectId(req.params.noteid)>>
+                'reviews.$.reviewer': newReviewer,
+                'reviews.$.text': newText,
+            }
+        })
+        res.status(200)
+   })
+
+    /* ------------------------------------------------------------- END OF UPDATE(POST) FOR MY EMBEDDED DOCUMENT (REVIEWS) -----------------------------------------------------------------------------*/
+
+
+
+
+    /* ------------------------------------------------------------- START OF DELETE(POST) FOR MY EMBEDDED DOCUMENT (REVIEWS) -----------------------------------------------------------------------------*/
+
+    app.get("/listings/:listingid/your-reviews/:reviewid/delete" , async (req , res) => {
+        let reviewRecord = await db.collection("listings").findOne({
+            '_id': ObjectId(req.params.listingid),
+            'reviews._id': ObjectId(req.params.reviewid)
+        } , {
+            'projection':{
+                'reviews':{
+                    '$elemMatch': {
+                        '_id': ObjectId(req.params.reviewid)
+                    }
+                }
+            }
+        })
+        res.send(reviewRecord.reviews[0].reviewer + " " + reviewRecord.reviews[0].text)
+   })
+
+    app.post("/listings/:listingid/your-reviews/:reviewid/delete" , async (req , res) => {
+        await db.collection("listings").updateOne({
+            '_id': ObjectId(req.params.listingid),
+        } , {
+            '$pull':{
+                'reviews':{
+                    '_id': ObjectId(req.params.reviewid)
+                }
+            }
+        })
+        res.status(200)
+        res.json({
+            'status': 'Deleted'
+        })
+    })
+    /* ------------------------------------------------------------- END OF DELETE(POST) FOR MY EMBEDDED DOCUMENT (REVIEWS) -----------------------------------------------------------------------------*/
 
 }
 
@@ -333,15 +400,3 @@ main()
 app.listen(3000 , () => {
     console.log("Server has Started")
 })
-
-/*
-    Questions for the day:
-
-    1) What can I validate for update and create?
-
-    2) What can I validate for reviews(Embedded documents)
-
-    3) Do you change BE later on when doing frontend to incorporate stuff like $and , $or , $all , $nin , $gt / $gte , $lt / $lte
-
-
-*/
