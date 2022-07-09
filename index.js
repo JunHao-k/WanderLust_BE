@@ -50,7 +50,7 @@ async function main(){
 
 
     // This get request will be send when user types in a country/city in the search bar
-    app.get("/search" , async (req , res) => {
+    app.get("/listings" , async (req , res) => {
         let citySearch = false , countrySearch = false , bothSearch = false , bothNoSearch = false
         let criteria = {}
         let location = null , result = null
@@ -115,6 +115,7 @@ async function main(){
 
         let type = req.body.type
         let name = req.body.name
+        let author = req.body.author
         let description = req.body.description
         let country = ObjectId(req.body.country) 
         let city = haveCity.length == 0 ? req.body.city : haveCity[0]._id
@@ -125,7 +126,7 @@ async function main(){
         let stars = req.body.stars
         let tags = tagsCopy
         let image_url = req.body.image_url
-        let reviews = [{}]
+        let reviews = []
 
         // if (!name) {
         //     res.status(406)
@@ -135,6 +136,7 @@ async function main(){
         let newListing = {
             'type': type,
             'name': name,
+            'author': author,
             'description': description,
             'country': country,
             'city': city,
@@ -201,6 +203,7 @@ async function main(){
 
         let type = req.body.type
         let name = req.body.name
+        let author = req.body.author
         let description = req.body.description
         let country = ObjectId(req.body.country) 
         let city = haveCity.length == 0 ? req.body.city : haveCity[0]._id  
@@ -218,6 +221,7 @@ async function main(){
             '$set': {
                 "type": type,
                 "name": name,
+                'author': author,
                 "description": description,
                 "country": country,
                 "city": city,
@@ -252,6 +256,49 @@ async function main(){
 
     /* ------------------------------------------------------------- END OF DELETE(DELETE) FOR MY LISTINGS -----------------------------------------------------------------------------*/
 
+
+    /* ------------------------------------------------------------- START OF READ(GET) FOR MY EMBEDDED DOCUMENT (REVIEWS) -----------------------------------------------------------------------------*/
+
+
+    // After getting to the main page listing clicking on any listing will lead you to another page with the reviews shown below
+    // Click on add review to go to a new page through /:listingid/add
+    app.get("/listings/:listingid/add" , async (req , res) => {
+        let listingRecord = await db.collection("listings").findOne({
+            "_id": ObjectId(req.params.listingid)
+        } , {
+            "projection":{
+                'name': 1,
+                'author': 1
+            }
+        })
+        res.status(200)
+        res.send(listingRecord)
+    })
+
+    /* ------------------------------------------------------------- END OF READ(GET) FOR MY EMBEDDED DOCUMENT (REVIEWS) -----------------------------------------------------------------------------*/
+
+
+    /* ------------------------------------------------------------- START OF CREATE(POST) FOR MY EMBEDDED DOCUMENT (REVIEWS) -----------------------------------------------------------------------------*/
+
+    app.post("/listings/:listingid/add" , async (req , res) => {
+        let results = await db.collection("listings").updateOne({
+            "_id": ObjectId(req.params.listingid)
+        } , {
+            '$push': {
+                'reviews': {
+                    '_id': ObjectId(),
+                    'reviewer': req.body.reviewer,
+                    'reviewer_email': req.body.reviewer_email,
+                    'text': req.body.text
+                }
+            }
+        })
+        res.status(200)
+        res.send(results)
+        // res.redirect(`/listings/${req.params.listingid}`)
+    })
+
+    /* ------------------------------------------------------------- END OF CREATE(POST) FOR MY EMBEDDED DOCUMENT (REVIEWS) -----------------------------------------------------------------------------*/
 
 
 }
