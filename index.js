@@ -52,6 +52,7 @@ async function main(){
     // This get request will be send when user types in a country/city in the search bar
     app.get("/listings" , async (req , res) => {
         let citySearch = false , countrySearch = false , bothSearch = false , bothNoSearch = false
+    
         let criteria = {}
         let location = null , result = null
 
@@ -136,24 +137,37 @@ async function main(){
         }
         haveCity = await db.collection("cities").find(cityCheck).toArray()
 
+        
         let tagsCopy = []
-        for(id of req.body.tags_id){
-            tagsCopy.push(ObjectId(id))
+        if(req.body.tags_id.length === 0){
+            res.status(406)
+            res.send("Tags field cannot be empty")
         }
+        else{
+            for(id of req.body.tags_id){
+                tagsCopy.push(ObjectId(id))
+            }
+        }
+        
 
-        let type = req.body.type
-        let name = req.body.name
-        let author = req.body.author
-        let description = req.body.description
-        let country = ObjectId(req.body.country) 
-        let city = haveCity.length === 0 ? req.body.city : haveCity[0]._id
-        let email = req.body.email
-        let article = req.body.article
-        let ratings = req.body.ratings
-        let price = req.body.price
-        let stars = req.body.stars
-        let tags = tagsCopy
-        let image_url = req.body.image_url
+        let descriptionArr = [req.body.description1 , req.body.description2 , req.body.description3]
+
+        let type = req.body.type // Radiobuttons
+        let name = req.body.name // Input ==> Cannot be empty fields and must be string
+        let author = req.body.author // Input ==> Cannot be empty fields and must be string
+        let description = descriptionArr // Array of 3 String inputs ==> Cannot be empty fields and must be string
+        let country = ObjectId(req.body.country) // Dropdown selection 
+
+        // Cannot do anything to verify if the city name is legit anot can only validate for empty field and string
+        // Might have to use weather api or geocoding or whatever API to check if city is valid
+        let city = haveCity.length === 0 ? req.body.city : haveCity[0]._id 
+        let email = req.body.email // Must have @ and "." and is a string
+        let article = req.body.article 
+        let ratings = req.body.ratings // Maybe use a range slider 
+        let price = req.body.price // Must be float/int ==> Validate for this 
+        let stars = req.body.stars // Use Range slider also?
+        let tags = tagsCopy // Checkboxes ==> checkbox array cannot be empty
+        let image_url = req.body.image_url 
         let reviews = []
 
         // if (!name) {
