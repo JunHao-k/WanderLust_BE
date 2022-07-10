@@ -48,7 +48,7 @@ async function main(){
 
     /* ------------------------------------------------------------- START OF READ(GET) FOR MY LISTINGS -----------------------------------------------------------------------------*/
 
-
+    
     // This get request will be send when user types in a country/city in the search bar
     app.get("/listings" , async (req , res) => {
         let citySearch = false , countrySearch = false , bothSearch = false , bothNoSearch = false
@@ -67,30 +67,58 @@ async function main(){
         else{
             bothNoSearch = true
         }
-        // console.log("Country name => " + req.query.country)
-        // console.log("City name => " + req.query.city)
-        // console.log(citySearch , countrySearch , bothSearch , bothNoSearch)
+
 
         if(countrySearch){
             criteria['country'] = {
                 '$regex': req.query.country , '$options': 'i'
             }
             location = await db.collection("countries").find(criteria).toArray()
-            
-            result = await db.collection("listings").find({}).toArray()
-            
+
+            if(location.length === 0){
+                res.send("Please enter a valid country") 
+            }
+            else{
+                result = await db.collection("listings").find({
+                    "country": location[0]._id
+                }).toArray()
+    
+                if(result.length === 0){
+                    res.send("There is no listing on this particular country , want to contribute on it?")
+                }
+                else{
+                    res.send(result)
+                    res.status(200)
+                }
+            }
         }
         else if(citySearch || bothSearch){
             criteria['city'] = {
                 '$regex': req.query.city , '$options': 'i'
             }
             location = await db.collection("cities").find(criteria).toArray()
-            result = await db.collection("listings").find({}).toArray()
+
+            if(location.length === 0){
+                res.send("There is no listing on this particular city, want to contribute on it?") 
+            }
+            else{
+                result = await db.collection("listings").find({
+                    "city": location[0]._id
+                }).toArray()
+    
+                if(result.length === 0){
+                    res.send("There is no listing on this particular city, want to contribute on it?")
+                }
+                else{
+                    res.send(result)
+                    res.status(200)
+                }
+            }
         }
-        // console.log(location.length)
-        console.log(result)
-        res.send(result)
-        res.status(200)
+        else{
+            res.status(404)
+            res.send("Search field cannot be empty")
+        }
     })
 
 
@@ -118,7 +146,7 @@ async function main(){
         let author = req.body.author
         let description = req.body.description
         let country = ObjectId(req.body.country) 
-        let city = haveCity.length == 0 ? req.body.city : haveCity[0]._id
+        let city = haveCity.length === 0 ? req.body.city : haveCity[0]._id
         let email = req.body.email
         let article = req.body.article
         let ratings = req.body.ratings
