@@ -234,10 +234,12 @@ async function main(){
             tagsCopy.push(ObjectId(id))
         }
 
+        let descriptionArr = [req.body.description1 , req.body.description2 , req.body.description3]
+
         let type = req.body.type
         let name = req.body.name
         let author = req.body.author
-        let description = req.body.description
+        let description = descriptionArr
         let country = ObjectId(req.body.country) 
         let city = haveCity.length == 0 ? req.body.city : haveCity[0]._id  
         let email = req.body.email
