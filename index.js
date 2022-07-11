@@ -23,6 +23,9 @@ waxOn.on(hbs.handlebars)
 waxOn.setLayoutPath("./views/layouts")
 
 
+const validation = require('./Middlewares/validation')
+const validateList = require('./Validations/validateList')
+
 function processCheckbox(checkboxes) {
     let values = checkboxes;
     if (!values) {
@@ -129,7 +132,8 @@ async function main(){
     /* ------------------------------------------------------------- START OF CREATE(POST) FOR MY LISTINGS -----------------------------------------------------------------------------*/
 
 
-    app.post("/contribute" , async (req , res) => {
+    app.post("/contribute" , await validation.validation(validateList.listingSchema) , async (req , res) => {
+
         let haveCity = null;
         let cityCheck = {}
         cityCheck['city'] = {
@@ -139,17 +143,9 @@ async function main(){
 
         
         let tagsCopy = []
-        if(req.body.tags_id.length === 0){
-            res.status(406)
-            res.send("Tags field cannot be empty")
+        for(id of req.body.tags_id){
+            tagsCopy.push(ObjectId(id))
         }
-        else{
-            for(id of req.body.tags_id){
-                tagsCopy.push(ObjectId(id))
-            }
-        }
-        
-
         let descriptionArr = [req.body.description1 , req.body.description2 , req.body.description3]
 
         let type = req.body.type // Radiobuttons
@@ -169,11 +165,6 @@ async function main(){
         let tags = tagsCopy // Checkboxes ==> checkbox array cannot be empty
         let image_url = req.body.image_url 
         let reviews = []
-
-        // if (!name) {
-        //     res.status(406)
-        //     res.send()
-        // }
 
         let newListing = {
             'type': type,
