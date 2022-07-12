@@ -342,14 +342,10 @@ async function main(){
         let reviewerEmail = req.query.email
         let reviewRecords = await db.collection("listings").find({
             "_id": ObjectId(req.params.listingid),
-            // 'reviewer_email': reviewerEmail
+            'reviews.reviewer_email': reviewerEmail
         } , {
             'projection': {
-                'reviews': {
-                    '$elemMatch': {
-                        'reviewer_email': reviewerEmail
-                    }
-                }
+                'reviews': 1
             }
         }).toArray()
         res.send(reviewRecords)
