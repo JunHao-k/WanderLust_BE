@@ -3,10 +3,10 @@ const validation = (schema) => async (req , res , next) => {
     try{
         await schema.validate(body)
         next()
-        return next()
+        // return next()
     }
     catch(error){
-        return res.status(500).send("Internal Server Error").json({error})
+        return res.status(500).send("Internal Server Error")
     }
 }
 
