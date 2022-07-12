@@ -186,7 +186,7 @@ async function main(){
         // console.log(newListing)
         let result = await db.collection("listings").insertOne(newListing)
         res.status(201)
-        res.send(result)
+        res.json(result)
 
         /*
             For countries and tags in the frontend part, for each input checkbox or multi-select:
