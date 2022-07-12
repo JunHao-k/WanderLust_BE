@@ -132,8 +132,9 @@ async function main(){
     /* ------------------------------------------------------------- START OF CREATE(POST) FOR MY LISTINGS -----------------------------------------------------------------------------*/
 
 
-    app.post("/contribute" , await validation.validation(validateList.listingSchema) , async (req , res) => {
+    app.post("/contribute" , validation.validation(validateList.listingSchema) , async (req , res) => {
 
+        
         let haveCity = null;
         let cityCheck = {}
         cityCheck['city'] = {
