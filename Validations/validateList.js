@@ -4,7 +4,7 @@ const stringCondition = string("value must be a string").required("This field ca
 
 const listingSchema = object({
     type: stringCondition,
-    name: stringCondition,
+    name: string().required(),
     author: stringCondition,
     description1: string().required(),
     description2: string().required(),
@@ -20,8 +20,15 @@ const listingSchema = object({
     image_url: string().url("This must be a valid URL").required()
 })
 
+const reviewSchema = object({
+    reviewer: stringCondition,
+    reviewer_email: string().email().required(),
+    text: string().required(),
+})
+
 module.exports = {
-        listingSchema
+    listingSchema,
+    reviewSchema
 }
 /*
         

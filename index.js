@@ -134,7 +134,6 @@ async function main(){
 
     app.post("/contribute" , validation.validation(validateList.listingSchema) , async (req , res) => {
 
-        
         let haveCity = null;
         let cityCheck = {}
         cityCheck['city'] = {
@@ -222,7 +221,7 @@ async function main(){
 
 
 
-    app.put("/listings/:id" , async (req , res) => {
+    app.put("/listings/:id" , validation.validation(validateList.listingSchema) , async (req , res) => {
         let haveCity = null;
         let cityCheck = {}
         cityCheck['city'] = {
@@ -313,7 +312,7 @@ async function main(){
         res.send(listingRecord)
     })
 
-    app.post("/listings/:listingid/add-review" , async (req , res) => {
+    app.post("/listings/:listingid/add-review" , validation.validation(validateList.reviewSchema) , async (req , res) => {
         let results = await db.collection("listings").updateOne({
             "_id": ObjectId(req.params.listingid)
         } , {
@@ -333,10 +332,6 @@ async function main(){
 
     /* ------------------------------------------------------------- END OF CREATE(POST) FOR MY EMBEDDED DOCUMENT (REVIEWS) -----------------------------------------------------------------------------*/
 
-
-    // READ MAY NOT BE NEEDED FOR MY PROJECT BECAUSE I AM LISTING THE REVIEWS OUT ALONG WITH THE MAIN DOCUMENT
-    // READ MAY NOT BE NEEDED FOR MY PROJECT BECAUSE I AM LISTING THE REVIEWS OUT ALONG WITH THE MAIN DOCUMENT
-    // READ MAY NOT BE NEEDED FOR MY PROJECT BECAUSE I AM LISTING THE REVIEWS OUT ALONG WITH THE MAIN DOCUMENT
 
     app.get("/listings/:listingid/your-reviews" , async (req , res) => {
         let reviewerEmail = req.query.email
@@ -369,8 +364,9 @@ async function main(){
         res.send(reviewRecord.reviews[0].reviewer + " " + reviewRecord.reviews[0].text)
    })
 
-   app.post("/listings/:listingid/your-reviews/:reviewid/update" , async (req , res) => {
+   app.post("/listings/:listingid/your-reviews/:reviewid/update" ,  async (req , res) => {
         let newReviewer = req.body.reviewer
+        let newEmail = req.body.email
         let newText = req.body.text
         await db.collection("listings").updateOne({
             '_id': ObjectId(req.params.listingid),
@@ -379,6 +375,7 @@ async function main(){
             '$set':{
                 // $ refers to position(index) of the embedded document that we want to edit whose id matches <<'notes._id': ObjectId(req.params.noteid)>>
                 'reviews.$.reviewer': newReviewer,
+                'reviews.$.reviewer_email': newEmail,
                 'reviews.$.text': newText,
             }
         })
