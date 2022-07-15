@@ -39,7 +39,23 @@ function processCheckbox(checkboxes) {
     return values;
 }
 
+
+
 async function main(){
+
+    async function processTags(result){
+        for(eachObj of result){
+            let temp = []
+            for(tagId of eachObj.tags_id){
+                let tagName = await db.collection('tags').findOne({
+                    "_id": ObjectId(tagId)
+                })
+                temp.push(tagName.tag_name)
+            }
+            eachObj.tags_id = temp
+        }
+        return result
+    }
 
     const db = await MongoUtil.connect(MONGO_URI , "wanderlust")
     console.log("Connected to database")
@@ -78,6 +94,7 @@ async function main(){
                 '$regex': req.query.country , '$options': 'i'
             }
             location = await db.collection("countries").find(criteria).toArray()
+            // console.log(location)
 
             if(location.length === 0){
                 res.send("Please enter a valid country") 
@@ -91,6 +108,18 @@ async function main(){
                     res.send("There is no listing on this particular country , want to contribute on it?")
                 }
                 else{
+                    
+                    for(country of result){
+                        country.country = location[0].country
+                        let cityObj = await db.collection("cities").findOne({
+                            "_id": ObjectId(country.city)
+                        })
+                        country.city = cityObj.city
+                    }
+                    // let refTag = result[0].tags_id
+                    // console.log(result[0].city)
+                    // console.log(refTag)
+                    result = await processTags(result)
                     res.send(result)
                     res.status(200)
                 }
@@ -114,6 +143,15 @@ async function main(){
                     res.send("There is no listing on this particular city, want to contribute on it?")
                 }
                 else{
+                    for(city of result){
+                        city.city = location[0].city
+                        let countryObj = await db.collection("countries").findOne({
+                            "_id": ObjectId(city.country)
+                        })
+                        city.country = countryObj.country
+                    }
+                    result = await processTags(result)
+
                     res.send(result)
                     res.status(200)
                 }
