@@ -71,6 +71,12 @@ async function main(){
         res.send(result)
         res.status(200)
     })
+
+    app.get("/tags" , async (req , res) => {
+        result = await db.collection("tags").find({}).toArray()
+        res.send(result)
+        res.status(200)
+    })
     
     // This get request will be send when user types in a country/city in the search bar
     app.get("/listings" , async (req , res) => {
