@@ -126,9 +126,6 @@ async function main(){
                         })
                         country.city = cityObj.city
                     }
-                    // let refTag = result[0].tags_id
-                    // console.log(result[0].city)
-                    // console.log(refTag)
                     result = await processTags(result)
                     res.send(result)
                     res.status(200)
@@ -188,6 +185,12 @@ async function main(){
             '$regex': req.body.city , '$options': 'i'
         }
         haveCity = await db.collection("cities").find(cityCheck).toArray()
+
+        if(haveCity.length === 0){
+            await db.collection("cities").insertOne({
+                'city': req.body.city
+            })
+        }
 
         
         let tagsCopy = []

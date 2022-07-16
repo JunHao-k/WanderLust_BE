@@ -6,7 +6,8 @@ const validation = (schema) => async (req , res , next) => {
         // return next()
     }
     catch(error){
-        return res.status(500).send("Internal Server Error")
+        // return res.status(500).send("Internal Server Error")
+        return res.json({error})
     }
 }
 
