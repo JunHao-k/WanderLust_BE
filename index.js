@@ -274,11 +274,20 @@ async function main(){
 
     app.get("/get-submissions" , async (req , res) => {
         let emailSearch = false 
+        let validEmail = false
         let criteria = {}
 
-        if(req.query.email){
+        if((req.query.email.indexOf('@') > -1) && (req.query.email.indexOf('.') > -1)){
+            validEmail = true
+        }
+        else{
+            res.send("Invalid email")
+        }
+
+        if(req.query.email && validEmail){
             emailSearch = true
         }
+        
 
         if(emailSearch){
             criteria['email'] = {
@@ -288,42 +297,12 @@ async function main(){
             res.send(result)
             res.status(200)
         }
+    })
 
-        /* 
-            if(countrySearch){
-            criteria['country'] = {
-                '$regex': req.query.country , '$options': 'i'
-            }
-            location = await db.collection("countries").find(criteria).toArray()
-            // console.log(location)
-
-            if(location.length === 0){
-                res.send("Please enter a valid country") 
-            }
-            else{
-                result = await db.collection("listings").find({
-                    "country": location[0]._id
-                }).toArray()
-    
-                if(result.length === 0){
-                    res.send("There is no listing on this particular country , want to contribute on it?")
-                }
-                else{
-                    
-                    for(country of result){
-                        country.country = location[0].country
-                        let cityObj = await db.collection("cities").findOne({
-                            "_id": ObjectId(country.city)
-                        })
-                        country.city = cityObj.city
-                    }
-                    result = await processTags(result)
-                    res.send(result)
-                    res.status(200)
-                }
-            }
-        }
-        */
+    app.get("/listings/:id" , async (req , res) => {
+        let result = await db.collection("listings").findOne({"_id": ObjectId(req.params.id)})
+        res.status(200)
+        res.send(result)
     })
 
     app.put("/listings/:id" , validation.validation(validateList.listingSchema) , async (req , res) => {
