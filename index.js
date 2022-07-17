@@ -77,6 +77,8 @@ async function main(){
         res.send(result)
         res.status(200)
     })
+
+    
     
     // This get request will be send when user types in a country/city in the search bar
     app.get("/listings" , async (req , res) => {
@@ -270,7 +272,59 @@ async function main(){
 
     /* ------------------------------------------------------------- START OF UPDATE(PUT) FOR MY LISTINGS -----------------------------------------------------------------------------*/
 
+    app.get("/get-submissions" , async (req , res) => {
+        let emailSearch = false 
+        let criteria = {}
 
+        if(req.query.email){
+            emailSearch = true
+        }
+
+        if(emailSearch){
+            criteria['email'] = {
+                '$regex': req.query.email , '$options': 'i'
+            }
+            let result = await db.collection("listings").find(criteria).toArray()
+            res.send(result)
+            res.status(200)
+        }
+
+        /* 
+            if(countrySearch){
+            criteria['country'] = {
+                '$regex': req.query.country , '$options': 'i'
+            }
+            location = await db.collection("countries").find(criteria).toArray()
+            // console.log(location)
+
+            if(location.length === 0){
+                res.send("Please enter a valid country") 
+            }
+            else{
+                result = await db.collection("listings").find({
+                    "country": location[0]._id
+                }).toArray()
+    
+                if(result.length === 0){
+                    res.send("There is no listing on this particular country , want to contribute on it?")
+                }
+                else{
+                    
+                    for(country of result){
+                        country.country = location[0].country
+                        let cityObj = await db.collection("cities").findOne({
+                            "_id": ObjectId(country.city)
+                        })
+                        country.city = cityObj.city
+                    }
+                    result = await processTags(result)
+                    res.send(result)
+                    res.status(200)
+                }
+            }
+        }
+        */
+    })
 
     app.put("/listings/:id" , validation.validation(validateList.listingSchema) , async (req , res) => {
         let haveCity = null;
