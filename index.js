@@ -78,6 +78,12 @@ async function main(){
         res.status(200)
     })
 
+    app.get("/cities" , async (req , res) => {
+        result = await db.collection("cities").find({}).toArray()
+        res.send(result)
+        res.status(200)
+    })
+    
     
     
     // This get request will be send when user types in a country/city in the search bar
@@ -312,6 +318,12 @@ async function main(){
             '$regex': req.body.city , '$options': 'i'
         }
         haveCity = await db.collection("cities").find(cityCheck).toArray()
+
+        if(haveCity.length === 0){
+            await db.collection("cities").insertOne({
+                'city': req.body.city
+            })
+        }
 
         let tagsCopy = []
         for(id of req.body.tags_id){
