@@ -198,6 +198,7 @@ async function main(){
             await db.collection("cities").insertOne({
                 'city': req.body.city
             })
+            haveCity = await db.collection("cities").find(cityCheck).toArray()
         }
 
         
@@ -300,6 +301,30 @@ async function main(){
                 '$regex': req.query.email , '$options': 'i'
             }
             let result = await db.collection("listings").find(criteria).toArray()
+            // let countryLoc = await db.collection("countries").find({
+            //     "_id": result[0].country
+            // }).toArray()
+            // let cityLoc = await db.collection("cities").find({
+            //     "_id": result[0].city
+            // }).toArray()
+
+            // console.log(countryLoc)
+            // console.log(cityLoc)
+
+            for(let eachObj of result){
+                let countryLoc = await db.collection("countries").find({
+                    "_id": eachObj.country
+                }).toArray()
+                let cityLoc = await db.collection("cities").find({
+                    "_id": eachObj.city
+                }).toArray()
+                eachObj.country = countryLoc[0].country
+                // console.log(cityLoc)
+                eachObj.city = cityLoc[0].city
+            }
+            result = await processTags(result)
+            
+
             res.send(result)
             res.status(200)
         }
@@ -323,6 +348,7 @@ async function main(){
             await db.collection("cities").insertOne({
                 'city': req.body.city
             })
+            haveCity = await db.collection("cities").find(cityCheck).toArray()
         }
 
         let tagsCopy = []
