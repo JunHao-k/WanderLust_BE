@@ -41,6 +41,9 @@ function processCheckbox(checkboxes) {
 
 
 
+
+
+
 async function main(){
 
     async function processTags(result){
@@ -59,6 +62,32 @@ async function main(){
 
     const db = await MongoUtil.connect(MONGO_URI , "wanderlust")
     console.log("Connected to database")
+
+    async function getFreeListing(locationType , req){
+        let criteria = {}
+            let result = null
+            let location = null
+            criteria[locationType] = {
+                '$regex': req.query.locationType , '$options': 'i'
+                
+            }
+            if(locationType === "city"){
+                location = await db.collection("cities").find(criteria).toArray()
+            }
+            else{
+                location = await db.collection("countries").find(criteria).toArray()
+            }
+            if(location.length === 0){
+                result = []
+                res.status(404)
+            }
+            else{
+                result = await db.collection("listings").find({
+                    '$and': [{"city": location[0]._id} , {"price": 0}]
+                }).toArray()
+            }
+            return result
+    }
 
     // This get root path will be from the main page with the search bar
     app.get("/" , (req , res) => {
@@ -115,7 +144,7 @@ async function main(){
             // console.log(location)
 
             if(location.length === 0){
-                res.send("Please enter a valid country") 
+                res.send(location)
             }
             else{
                 result = await db.collection("listings").find({
@@ -123,7 +152,8 @@ async function main(){
                 }).toArray()
     
                 if(result.length === 0){
-                    res.send("There is no listing on this particular country , want to contribute on it?")
+                    res.send(result)
+                    // res.send("There is no listing on this particular country , want to contribute on it?")
                 }
                 else{
                     
@@ -147,9 +177,6 @@ async function main(){
             location = await db.collection("cities").find(criteria).toArray()
 
             if(location.length === 0){
-                // result = []
-                // res.send("There is no listing on this particular city, want to contribute on it?") 
-                // res.status(404)
                 res.send(location)
             }
             else{
@@ -158,7 +185,6 @@ async function main(){
                 }).toArray()
     
                 if(result.length === 0){
-                    // res.status(404)
                     res.send(result)
                     // res.send("There is no listing on this particular city, want to contribute on it?")
                 }
@@ -176,12 +202,70 @@ async function main(){
                     res.status(200)
                 }
             }
-            // res.send(result)
         }
         else{
             res.status(404)
             res.send("Search field cannot be empty")
         }
+    })
+
+    app.get("/listings/free" , async (req , res) => {
+        let location = null
+        let result = null
+        let criteria = {}
+        if(req.query.city){
+            criteria['city'] = {
+                '$regex': req.query.city , '$options': 'i'
+                
+            }
+            location = await db.collection("cities").find(criteria).toArray()
+            if(location.length === 0){
+                result = []
+                res.status(404)
+            }
+            else{
+                result = await db.collection("listings").find({
+                    '$and': [{"city": location[0]._id} , {"price": 0}]
+                }).toArray()
+
+                for(eachObj of result){
+                    eachObj.city = location[0].city
+                    let countryName = await db.collection("countries").findOne({
+                        "_id": ObjectId(eachObj.country)
+                    })
+                    eachObj.country = countryName.country
+                }
+                result = await processTags(result)
+            }
+        }
+        else{
+            criteria['country'] = {
+                '$regex': req.query.country , '$options': 'i'
+                
+            }
+            location = await db.collection("countries").find(criteria).toArray()
+            if(location.length === 0){
+                result = []
+                res.status(404)
+            }
+            else{
+                result = await db.collection("listings").find({
+                    '$and': [{"country": location[0]._id} , {"price": 0}]
+                }).toArray()
+
+                for(eachObj of result){
+                    eachObj.country = location[0].country
+                    let cityName = await db.collection("cities").findOne({
+                        "_id": ObjectId(eachObj.city)
+                    })
+                    eachObj.city = cityName.city
+                }
+                result = await processTags(result)
+            }
+            
+        }
+        
+        res.send(result)
     })
 
 
