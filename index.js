@@ -147,7 +147,10 @@ async function main(){
             location = await db.collection("cities").find(criteria).toArray()
 
             if(location.length === 0){
-                res.send("There is no listing on this particular city, want to contribute on it?") 
+                // res.send("There is no listing on this particular city, want to contribute on it?") 
+                result = []
+                // res.status(404)
+                res.send(result)
             }
             else{
                 result = await db.collection("listings").find({
@@ -155,7 +158,9 @@ async function main(){
                 }).toArray()
     
                 if(result.length === 0){
-                    res.send("There is no listing on this particular city, want to contribute on it?")
+                    // res.status(404)
+                    res.send(result)
+                    // res.send("There is no listing on this particular city, want to contribute on it?")
                 }
                 else{
                     for(city of result){
