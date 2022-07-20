@@ -298,8 +298,35 @@ async function main(){
                 }
                 result = await processTags(result)
             }
-            res.send(result)
         }
+        else{
+            criteria['country'] = {
+                '$regex': req.query.country , '$options': 'i'
+                
+            }
+            location = await db.collection("countries").find(criteria).toArray()
+            if(location.length === 0){
+                result = []
+                res.status(404)
+            }
+            else{
+                result = await db.collection("listings").find({
+                    "country": ObjectId(location[0]._id),
+                    "tags_id": {'$in': [ObjectId(tagId)]}
+                }).toArray()
+
+                for(eachObj of result){
+                    eachObj.country = location[0].country
+                    let cityName = await db.collection("cities").findOne({
+                        "_id": ObjectId(eachObj.city)
+                    })
+                    eachObj.city = cityName.city
+                }
+                result = await processTags(result)
+            }
+        }
+        res.status(200)
+        res.send(result)
     })
         
     
