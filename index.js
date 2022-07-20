@@ -328,6 +328,69 @@ async function main(){
         res.status(200)
         res.send(result)
     })
+
+
+    app.get("/listings/stars" , async (req , res) => {
+        let criteria = {}
+        let location , result = null
+
+        if(req.query.city){
+            criteria['city'] = {
+                '$regex': req.query.city , '$options': 'i'
+                
+            }
+            location = await db.collection("cities").find(criteria).toArray()
+            if(location.length === 0){
+                result = []
+                res.status(404)
+            }
+            else{
+                result = await db.collection("listings").find({
+                    "city": ObjectId(location[0]._id),
+                    "stars": {'$gte': 4}
+                }).toArray()
+
+                for(eachObj of result){
+                    eachObj.city = location[0].city
+                    let countryName = await db.collection("countries").findOne({
+                        "_id": ObjectId(eachObj.country)
+                    })
+                    eachObj.country = countryName.country
+                }
+                result = await processTags(result)
+            }
+        }
+        else{
+            criteria['country'] = {
+                '$regex': req.query.country , '$options': 'i'
+                
+            }
+            location = await db.collection("countries").find(criteria).toArray()
+            if(location.length === 0){
+                result = []
+                res.status(404)
+            }
+            else{
+                result = await db.collection("listings").find({
+                    "country": ObjectId(location[0]._id),
+                    "stars": {'$gte': 4}
+                }).toArray()
+
+                console.log(result)
+
+                for(eachObj of result){
+                    eachObj.country = location[0].country
+                    let cityName = await db.collection("cities").findOne({
+                        "_id": ObjectId(eachObj.city)
+                    })
+                    eachObj.city = cityName.city
+                }
+                result = await processTags(result)
+            }
+        }
+        res.status(200)
+        res.send(result)
+    })
         
     
 
