@@ -268,14 +268,11 @@ async function main(){
         res.send(result)
     })
 
-    app.get("/listings/tags" , async (req , res) => {
+    app.get("/listings/tags/:id" , async (req , res) => {
         let criteria = {}
-        let tags_criteria = {}
         let location , result = null
-        let tagId = req.query.tags
-        tags_criteria['tags_id'] = {
-            '$in': [ObjectId(tagId)]
-        }
+        let tagId = req.params.id
+
         if(req.query.city){
             criteria['city'] = {
                 '$regex': req.query.city , '$options': 'i'
@@ -288,8 +285,8 @@ async function main(){
             }
             else{
                 result = await db.collection("listings").find({
-                    // "city": location[0]._id,
-                    tags_criteria
+                    "city": ObjectId(location[0]._id),
+                    "tags_id": {'$in': [ObjectId(tagId)]}
                 }).toArray()
 
                 for(eachObj of result){
@@ -301,6 +298,7 @@ async function main(){
                 }
                 result = await processTags(result)
             }
+            res.send(result)
         }
     })
         
