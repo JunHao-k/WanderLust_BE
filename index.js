@@ -376,8 +376,6 @@ async function main(){
                     "stars": {'$gte': 4}
                 }).toArray()
 
-                console.log(result)
-
                 for(eachObj of result){
                     eachObj.country = location[0].country
                     let cityName = await db.collection("cities").findOne({
