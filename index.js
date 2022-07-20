@@ -268,6 +268,44 @@ async function main(){
         res.send(result)
     })
 
+    app.get("/listings/tags" , async (req , res) => {
+        let criteria = {}
+        let tags_criteria = {}
+        let location , result = null
+        let tagId = req.query.tags
+        tags_criteria['tags_id'] = {
+            '$in': [ObjectId(tagId)]
+        }
+        if(req.query.city){
+            criteria['city'] = {
+                '$regex': req.query.city , '$options': 'i'
+                
+            }
+            location = await db.collection("cities").find(criteria).toArray()
+            if(location.length === 0){
+                result = []
+                res.status(404)
+            }
+            else{
+                result = await db.collection("listings").find({
+                    // "city": location[0]._id,
+                    tags_criteria
+                }).toArray()
+
+                for(eachObj of result){
+                    eachObj.city = location[0].city
+                    let countryName = await db.collection("countries").findOne({
+                        "_id": ObjectId(eachObj.country)
+                    })
+                    eachObj.country = countryName.country
+                }
+                result = await processTags(result)
+            }
+        }
+    })
+        
+    
+
 
     /* ------------------------------------------------------------- END OF READ(GET) FOR MY LISTINGS -----------------------------------------------------------------------------*/
 
