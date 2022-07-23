@@ -546,6 +546,23 @@ async function main(){
 
     app.get("/listings/:id" , async (req , res) => {
         let result = await db.collection("listings").findOne({"_id": ObjectId(req.params.id)})
+        let country = await db.collection("countries").findOne({
+            "_id": ObjectId(result.country)
+        })
+        let city = await db.collection("cities").findOne({
+            "_id": ObjectId(result.city)
+        })
+        result.country = country.country
+        result.city = city.city
+        
+        let temp = []
+        for(tagId of result.tags_id){
+            let tagName = await db.collection('tags').findOne({
+                "_id": ObjectId(tagId)
+            })
+            temp.push(tagName.tag_name)
+        }
+        result.tags_id = temp
         res.status(200)
         res.send(result)
     })
