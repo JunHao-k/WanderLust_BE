@@ -40,10 +40,6 @@ function processCheckbox(checkboxes) {
 }
 
 
-
-
-
-
 async function main(){
 
     async function processTags(result){
