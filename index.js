@@ -131,7 +131,7 @@ async function main(){
             bothNoSearch = true
         }
 
-
+        
         if(countrySearch){
             criteria['country'] = {
                 '$regex': req.query.country , '$options': 'i'
@@ -397,12 +397,14 @@ async function main(){
 
     app.post("/contribute" , validation.validation(validateList.listingSchema) , async (req , res) => {
 
+        // Logic if no such city is found in my cities collection
         let haveCity = null;
         let cityCheck = {}
         cityCheck['city'] = {
             '$regex': req.body.city , '$options': 'i'
         }
         haveCity = await db.collection("cities").find(cityCheck).toArray()
+        
 
         if(haveCity.length === 0){
             await db.collection("cities").insertOne({
